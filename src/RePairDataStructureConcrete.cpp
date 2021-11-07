@@ -58,4 +58,20 @@ TranslateTable &RePairDataStructureConcrete::getTable() {
   return translateTable;
 }
 
+std::vector<int>
+RePairDataStructureConcrete::decompressIntegerSequenceFromOffsetToTerminator(
+    int offset, int terminator) {
+  if (terminator >= firstSymbol)
+    throw std::runtime_error(
+        "Invalid terminator, value is not in original sequence: " +
+        std::to_string(terminator));
+  std::list<int> buildList;
+  for (size_t i = offset; i < compressedData.size(); i++) {
+    if (compressedData[i] == terminator)
+      break;
+    decompressSymbol(compressedData[i], buildList);
+  }
+  return {buildList.begin(), buildList.end()};
+}
+
 } // namespace RePairCompression

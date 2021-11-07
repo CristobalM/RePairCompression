@@ -20,6 +20,11 @@ public:
   virtual void dump(std::ostream &ostream) = 0;
   virtual const std::vector<int> &getCompressedIntegerSequence() = 0;
   virtual TranslateTable &getTable() = 0;
+
+  virtual std::vector<int>
+  decompressIntegerSequenceFromOffsetToTerminator(int offset,
+                                                  int terminator) = 0;
+
   virtual ~RePairDataStructure() = default;
 };
 

@@ -24,6 +24,9 @@ public:
   void dump(std::ostream &ostream) override;
   const std::vector<int> &getCompressedIntegerSequence() override;
   TranslateTable &getTable() override;
+  std::vector<int>
+  decompressIntegerSequenceFromOffsetToTerminator(int offset,
+                                                  int terminator) override;
 };
 } // namespace RePairCompression
 

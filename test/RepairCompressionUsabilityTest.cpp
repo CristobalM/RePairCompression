@@ -479,4 +479,59 @@ TEST(CompressionTestSuite, CompressedUsesLessSpace) {
   ASSERT_LT(compressedIntegerSequence.size(), integerSequence.size());
 }
 
-TEST(CompressionTestSuite, CanCompressFromOffsetUntilGivenTerminator) {}
+template <typename TList, typename T>
+static int getPos(T value, const TList &where) {
+  auto itPos = std::find(where.begin(), where.end(), value);
+  if (itPos == where.end())
+    throw std::runtime_error("getPos: not found");
+  return (int)(itPos - where.begin());
+}
+
+TEST(CompressionTestSuite, CanDecompressFromOffsetUntilGivenTerminator) {
+  std::vector<int> inputSequence = {
+      0, 0, 0,   0, 0, 0, 100, 1, 1, 1,   1, 1, 1, 101, 2, 2, 2,   3,
+      3, 3, 102, 4, 4, 4, 1,   1, 1, 103, 1, 4, 0, 0,   1, 1, 104,
+  };
+
+  auto pos0 = getPos(100, inputSequence);
+  auto pos1 = getPos(101, inputSequence);
+  auto pos2 = getPos(102, inputSequence);
+  auto pos3 = getPos(103, inputSequence);
+  auto pos4 = getPos(104, inputSequence);
+
+  auto part1 =
+      std::vector<int>(inputSequence.begin(), inputSequence.begin() + pos0);
+  auto part2 = std::vector<int>(inputSequence.begin() + pos0,
+                                inputSequence.begin() + pos1);
+  auto part3 = std::vector<int>(inputSequence.begin() + pos1,
+                                inputSequence.begin() + pos2);
+  auto part4 = std::vector<int>(inputSequence.begin() + pos2,
+                                inputSequence.begin() + pos3);
+  auto part5 = std::vector<int>(inputSequence.begin() + pos3,
+                                inputSequence.begin() + pos4);
+
+  auto repairDs = RePairCompression::compressIntegerSequence(inputSequence);
+  const auto &compressedIntegerSequence =
+      repairDs->getCompressedIntegerSequence();
+
+  auto cPos0 = getPos(100, compressedIntegerSequence);
+  auto cPos1 = getPos(101, compressedIntegerSequence);
+  auto cPos2 = getPos(102, compressedIntegerSequence);
+  auto cPos3 = getPos(103, compressedIntegerSequence);
+
+  auto decompressedPortion =
+      repairDs->decompressIntegerSequenceFromOffsetToTerminator(0, 100);
+  ASSERT_EQ(decompressedPortion, part1);
+  auto decompressedPortion2 =
+      repairDs->decompressIntegerSequenceFromOffsetToTerminator(cPos0, 101);
+  ASSERT_EQ(decompressedPortion2, part2);
+  auto decompressedPortion3 =
+      repairDs->decompressIntegerSequenceFromOffsetToTerminator(cPos1, 102);
+  ASSERT_EQ(decompressedPortion3, part3);
+  auto decompressedPortion4 =
+      repairDs->decompressIntegerSequenceFromOffsetToTerminator(cPos2, 103);
+  ASSERT_EQ(decompressedPortion4, part4);
+  auto decompressedPortion5 =
+      repairDs->decompressIntegerSequenceFromOffsetToTerminator(cPos3, 104);
+  ASSERT_EQ(decompressedPortion5, decompressedPortion5);
+}

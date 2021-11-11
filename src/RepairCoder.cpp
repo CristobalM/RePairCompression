@@ -14,6 +14,10 @@ namespace RePairCompression {
 bool RepairCoder::done() { return priorityQueue.getActivePosition() <= 0; }
 void RepairCoder::step() {
   auto *record = priorityQueue.pop();
+  Record recordTmp = *record;
+  hashTable.deleteRecord(record->valuePair);
+  record = &recordTmp;
+
   auto replacingPair = record->valuePair;
 
   auto *entry = &entriesList[record->firstEntryPosition];
@@ -22,6 +26,7 @@ void RepairCoder::step() {
   int replacingSymbol = nextSymbol++;
   translateTable.addTranslation(replacingPair, replacingSymbol);
   while (entry) {
+    debugTotalSteps++;
     auto nextPosition = entry->right;
 
     auto *otherEntry = getRight(entry);
@@ -219,7 +224,8 @@ TranslateTable RepairCoder::getTranslateTable() { return translateTable; }
 RepairCoder::RepairCoder(EntriesList &entriesList, HashTable &hashTable,
                          PriorityQueue &priorityQueue)
     : entriesList(entriesList), hashTable(hashTable),
-      priorityQueue(priorityQueue), debugCurrentStep(0) {
+      priorityQueue(priorityQueue), debugCurrentStep(0), debugTotalSteps(0),
+      totalIncFreq(0) {
   initStructures();
   debugPrintCurrentSequence();
 }
@@ -228,10 +234,10 @@ void RepairCoder::initStructures() {
   for (int i = 0; i < (int)entriesList.size() - 1; i++) {
     auto *entry = &entriesList[i];
     auto *nextEntry = &entriesList[i + 1];
-    increasePairFrequencyInit((int)i, entry, nextEntry);
+    ValuePair valuePair(entry->value, nextEntry->value);
+    hashTable.increaseFrequency(i, valuePair);
     maxSymbol = std::max(maxSymbol, entry->value);
 
-    ValuePair valuePair(entry->value, nextEntry->value);
     auto *record = hashTable.getRecord(valuePair);
     auto *firstEntry = &entriesList[record->firstEntryPosition];
     int lastEntryPosition;
@@ -261,27 +267,15 @@ void RepairCoder::initStructures() {
   }
 }
 
-void RepairCoder::increasePairFrequencyInit(int leftEntryPosition,
-                                            Entry *leftEntry,
-                                            Entry *rightEntry) {
-  ValuePair valuePair(leftEntry->value, rightEntry->value);
-  hashTable.increaseFrequency(leftEntryPosition, valuePair);
-}
 void RepairCoder::insertToPriorityQueue(Entry *leftEntry, Entry *rightEntry) {
   auto *record =
       hashTable.getRecord(ValuePair(leftEntry->value, rightEntry->value));
   priorityQueue.insertRecord(record);
 }
 void RepairCoder::increaseFrequency(EntryPair entryPair) {
+  totalIncFreq++;
   Entry *leftEntry = entryPair.first;
   Entry *rightEntry = entryPair.second;
-
-  if ((!rightEntry || rightEntry->value == -1) && leftEntry &&
-      leftEntry->value != -1) {
-    leftEntry->right = -1;
-    leftEntry->left = -1;
-    return;
-  }
 
   if (!leftEntry || !rightEntry || leftEntry->value == -1 ||
       rightEntry->value == -1 ||
@@ -317,17 +311,10 @@ void RepairCoder::increaseFrequency(EntryPair entryPair) {
   int lastEntryPosition = firstEntry->left;
   auto *lastEntry = &entriesList[lastEntryPosition];
 
-  int currentPosition = getPosition(leftEntry);
-
-  lastEntry->right = currentPosition;
+  lastEntry->right = position;
   leftEntry->left = lastEntryPosition;
   leftEntry->right = firstEntryPosition;
-  firstEntry->left = currentPosition;
-}
-bool RepairCoder::notSamePair(Entry *p1a, Entry *p1b, Entry *p2a, Entry *p2b) {
-  if (!p1a || !p1b || !p2a || !p2b)
-    return false;
-  return !(p1a->value == p2a->value && p1b->value == p2b->value);
+  firstEntry->left = position;
 }
 void RepairCoder::debugPrintCurrentSequence() {
   return;
@@ -360,5 +347,6 @@ std::vector<int> RepairCoder::getFlattenedCompressed() {
   }
   return result;
 }
+int RepairCoder::getDebugTotalSteps() { return debugTotalSteps; }
 
 } // namespace RePairCompression

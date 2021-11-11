@@ -80,7 +80,7 @@ Record *PriorityQueue::pop() {
   }
   return record;
 }
-void PriorityQueue::decreaseFrequency(ValuePair valuePair) {
+void PriorityQueue::decreaseFrequency(const ValuePair &valuePair) {
   auto *record = hashTable.getRecord(valuePair);
   if (!record)
     return;
@@ -157,7 +157,7 @@ void PriorityQueue::disconnectFromList(int position, Record *record) {
   }
 }
 
-void PriorityQueue::increaseFrequency(ValuePair valuePair) {
+void PriorityQueue::increaseFrequency(const ValuePair &valuePair) {
   auto *record = hashTable.getRecord(valuePair);
   auto currentFrequency = record->frequency;
   auto nextFrequency = currentFrequency + 1;

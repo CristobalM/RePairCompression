@@ -24,11 +24,11 @@ public:
 
   bool empty() const;
   Record *pop();
-  void decreaseFrequency(ValuePair valuePair);
+  void decreaseFrequency(const ValuePair &valuePair);
   void decreaseSmallerFrequency(Record *record);
   void decreaseBiggerFrequency(Record *record);
   void disconnectFromList(int position, Record *record);
-  void increaseFrequency(ValuePair valuePair);
+  void increaseFrequency(const ValuePair &valuePair);
   int getActivePosition();
 };
 

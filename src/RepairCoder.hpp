@@ -17,8 +17,10 @@ class RepairCoder {
 
   int nextSymbol;
   int debugCurrentStep;
+  int debugTotalSteps;
 
 public:
+  int totalIncFreq;
   RepairCoder(EntriesList &entriesList, HashTable &hashTable,
               PriorityQueue &priorityQueue);
   bool done();
@@ -27,10 +29,10 @@ public:
 
   std::vector<int> getFlattenedCompressed();
 
+  int getDebugTotalSteps();
+
 private:
   void initStructures();
-  void increasePairFrequencyInit(int leftEntryPosition, Entry *leftEntry,
-                                 Entry *rightEntry);
   void insertToPriorityQueue(Entry *leftEntry, Entry *rightEntry);
   Entry *getLeft(Entry *entry);
   Entry *getRight(Entry *entry);
@@ -38,7 +40,6 @@ private:
   void decreaseFrequency(EntryPair entryPair);
   void replacePair(EntryPair replacingEntryPair, int newSymbol);
   void increaseFrequency(EntryPair entryPair);
-  static bool notSamePair(Entry *p1a, Entry *p1b, Entry *p2a, Entry *p2b);
   void debugPrintCurrentSequence();
   bool matchingPair(EntryPair left, EntryPair right);
 };

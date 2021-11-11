@@ -27,6 +27,10 @@ compressIntegerSequence(const std::vector<int> &integerSequence);
 
 std::unique_ptr<RePairDataStructure> load(std::istream &is);
 
+std::unique_ptr<RePairDataStructure>
+compressIntegerSequence(std::vector<int> &&integerSequence);
+std::unique_ptr<RePairDataStructure> compress(std::string &&inputString);
+
 } // namespace RePairCompression
 
 #endif // REPAIRCOMPRESSION_REPAIRCOMPRESSION_HPP

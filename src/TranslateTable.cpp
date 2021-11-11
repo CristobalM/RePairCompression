@@ -6,7 +6,7 @@
 #include "Serialization.hpp"
 namespace RePairCompression {
 
-void TranslateTable::addTranslation(ValuePair valuePair, int symbol) {
+void TranslateTable::addTranslation(const ValuePair &valuePair, int symbol) {
   translateMap[symbol] = valuePair;
 }
 ValuePair TranslateTable::getPair(int symbol) { return translateMap[symbol]; }

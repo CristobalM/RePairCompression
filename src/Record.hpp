@@ -17,7 +17,9 @@ struct Record {
   Record *prev;
   Record *next;
 
-  Record(ValuePair valuePair, int firstEntryPosition, int frequency)
+  Record() = default;
+
+  Record(const ValuePair &valuePair, int firstEntryPosition, int frequency)
       : valuePair(valuePair), firstEntryPosition(firstEntryPosition),
         frequency(frequency), prev(nullptr), next(nullptr) {}
 };

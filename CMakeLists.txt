@@ -44,7 +44,10 @@ set(SRC_FILES
         src/Serialization.cpp
         src/Serialization.hpp
         src/EntryPair.cpp
-        src/EntryPair.hpp)
+        src/EntryPair.hpp
+        src/LPRecordHTable.cpp
+        src/LPRecordHTable.hpp
+        )
 
 add_library(RePairCompression ${SRC_FILES})
 
@@ -62,7 +65,15 @@ if (GTest_FOUND)
 
     add_executable(RepairCompressionUsabilityTest test/RepairCompressionUsabilityTest.cpp)
     target_link_libraries(RepairCompressionUsabilityTest RePairCompression ${GTEST_BOTH_LIBRARIES})
-
     add_test(NAME RepairCompressionUsabilityTest COMMAND ./RepairCompressionUsabilityTest)
 
+    add_executable(LPRecordHTableTest test/LPRecordHTableTest.cpp)
+    target_link_libraries(LPRecordHTableTest RePairCompression ${GTEST_BOTH_LIBRARIES})
+    add_test(NAME LPRecordHTableTest COMMAND ./LPRecordHTableTest)
+
 endif ()
+
+
+add_executable(benchmark_10M_same benchmarking/benchmark_10M_same.cpp)
+target_link_libraries(benchmark_10M_same RePairCompression)
+

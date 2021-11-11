@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
   auto str = ss.str();
   std::cout << "compressing string of size: '" << str.size() << "'"
             << std::endl;
-  auto rePairDs = RePairCompression::compress(str);
+  auto rePairDs = RePairCompression::compress(std::move(str));
   std::cout << "compressed size: "
             << rePairDs->getCompressedIntegerSequence().size()
             << ", table size: " << rePairDs->getTable().size() << std::endl;

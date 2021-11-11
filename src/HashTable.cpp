@@ -7,49 +7,34 @@
 namespace RePairCompression {
 
 Record *HashTable::increaseFrequency(int leftEntryPosition,
-                                     ValuePair valuePair) {
-  auto it = hashTable.find(valuePair);
-  if (it == hashTable.end()) {
-    auto record = std::make_unique<Record>(valuePair, leftEntryPosition, 1);
-    auto *record_ptr = record.get();
-    hashTable[valuePair] = std::move(record);
-    return record_ptr;
+                                     const ValuePair &valuePair) {
+  auto *record = hashTable.findRecord(valuePair);
+  if (!record) {
+    return hashTable.addRecord(valuePair, leftEntryPosition, 1);
   }
-  it->second->frequency++;
-  return it->second.get();
+  record->frequency++;
+  return record;
 }
 
-HashTable::HashTable() {
-  hashTable.reserve((int)((float)(256 * 256) * ((float)1.25)));
+HashTable::HashTable() = default;
+
+Record *HashTable::getRecord(const ValuePair &valuePair) {
+  return hashTable.findRecord(valuePair);
 }
 
-Record *HashTable::getRecord(ValuePair valuePair) {
-  auto it = hashTable.find(valuePair);
-  if (it == hashTable.end()) {
-    return nullptr;
-  }
-  return it->second.get();
+void HashTable::deleteRecord(const ValuePair &valuePair) {
+  hashTable.deleteRecord(valuePair);
 }
-
-void HashTable::deleteRecord(ValuePair valuePair) {
-  auto it = hashTable.find(valuePair);
-  if (it == hashTable.end())
-    return;
-  hashTable.erase(it);
-}
-Record *HashTable::createRecordIfNotExists(int position, ValuePair valuePair,
+Record *HashTable::createRecordIfNotExists(int position,
+                                           const ValuePair &valuePair,
                                            bool &created) {
-  auto it = hashTable.find(valuePair);
-  if (it != hashTable.end()) {
-    auto *record = it->second.get();
+  auto *record = hashTable.findRecord(valuePair);
+  if (record) {
     created = false;
     return record;
   }
   created = true;
-  auto record = std::make_unique<Record>(valuePair, position, 0);
-  auto *record_ptr = record.get();
-  hashTable[valuePair] = std::move(record);
-  return record_ptr;
+  return hashTable.addRecord(valuePair, position, 0);
 }
 
 } // namespace RePairCompression

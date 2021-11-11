@@ -66,6 +66,12 @@ TEST(CompressionTestSuite, CanCompressAndDecompressString7) {
   auto decompressedString = repairDs->decompress();
   ASSERT_EQ(decompressedString, inputString);
 }
+TEST(CompressionTestSuite, CanCompressAndDecompressString7_2) {
+  auto inputString = "abbabb";
+  auto repairDs = RePairCompression::compress(std::string(inputString));
+  auto decompressedString = repairDs->decompress();
+  ASSERT_EQ(decompressedString, inputString);
+}
 TEST(CompressionTestSuite, CanCompressAndDecompressString8) {
   auto inputString = "aabbbbaaaa";
   auto repairDs = RePairCompression::compress(inputString);

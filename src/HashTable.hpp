@@ -5,23 +5,21 @@
 #ifndef REPAIRCOMPRESSION_HASHTABLE_HPP
 #define REPAIRCOMPRESSION_HASHTABLE_HPP
 #include "CommonDefinitions.hpp"
+#include "LPRecordHTable.hpp"
 #include "Record.hpp"
 #include "ValuePair.hpp"
 #include <memory>
-#include <unordered_map>
 namespace RePairCompression {
 
 class HashTable {
-  std::unordered_map<ValuePair, std::unique_ptr<Record>,
-                     ValuePair::HashFunction>
-      hashTable;
+  LPRecordHTable hashTable;
 
 public:
   HashTable();
-  Record *increaseFrequency(int leftEntryPosition, ValuePair valuePair);
-  Record *getRecord(ValuePair valuePair);
-  void deleteRecord(ValuePair valuePair);
-  Record *createRecordIfNotExists(int position, ValuePair valuePair,
+  Record *increaseFrequency(int leftEntryPosition, const ValuePair &valuePair);
+  Record *getRecord(const ValuePair &valuePair);
+  void deleteRecord(const ValuePair &valuePair);
+  Record *createRecordIfNotExists(int position, const ValuePair &valuePair,
                                   bool &created);
 };
 } // namespace RePairCompression

@@ -21,6 +21,7 @@ public:
   void deleteRecord(const ValuePair &valuePair);
   Record *createRecordIfNotExists(int position, const ValuePair &valuePair,
                                   bool &created);
+  LPRecordHTable &getHTable();
 };
 } // namespace RePairCompression
 #endif // REPAIRCOMPRESSION_HASHTABLE_HPP

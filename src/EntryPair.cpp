@@ -5,8 +5,7 @@
 #include "EntryPair.hpp"
 namespace RePairCompression {
 
-EntryPair::EntryPair(RePairCompression::Entry *first,
-                     RePairCompression::Entry *second)
-    : first(first), second(second) {}
+EntryPair::EntryPair(int firstPosition, int secondPosition)
+    : firstPosition(firstPosition), secondPosition(secondPosition) {}
 
 } // namespace RePairCompression

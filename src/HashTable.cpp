@@ -36,5 +36,6 @@ Record *HashTable::createRecordIfNotExists(int position,
   created = true;
   return hashTable.addRecord(valuePair, position, 0);
 }
+LPRecordHTable &HashTable::getHTable() { return hashTable; }
 
 } // namespace RePairCompression

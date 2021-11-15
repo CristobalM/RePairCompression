@@ -17,6 +17,11 @@ ValuePair::ValuePair(const ValuePair &pair) {
 bool ValuePair::operator!=(const ValuePair &other) const {
   return !operator==(other);
 }
+bool ValuePair::operator<(const ValuePair &other) const {
+  if (leftValue == other.leftValue)
+    return rightValue < other.rightValue;
+  return leftValue < other.leftValue;
+}
 ValuePair &ValuePair::operator=(const ValuePair &pair) = default;
 std::size_t
 ValuePair::HashFunction::operator()(const ValuePair &valuePair) const {

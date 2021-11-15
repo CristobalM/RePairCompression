@@ -7,9 +7,9 @@
 #include "Entry.hpp"
 namespace RePairCompression {
 struct EntryPair {
-  Entry *first;
-  Entry *second;
-  EntryPair(Entry *first, Entry *second);
+  int firstPosition;
+  int secondPosition;
+  EntryPair(int firstPosition, int secondPosition);
 };
 } // namespace RePairCompression
 #endif // REPAIRCOMPRESSION_ENTRYPAIR_HPP

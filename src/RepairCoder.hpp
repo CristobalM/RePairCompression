@@ -21,6 +21,9 @@ class RepairCoder {
 
 public:
   int totalIncFreq;
+  RepairCoder(const RepairCoder &other) = delete;
+  RepairCoder &operator=(const RepairCoder &other) = delete;
+
   RepairCoder(EntriesList &entriesList, HashTable &hashTable,
               PriorityQueue &priorityQueue);
   bool done();
@@ -33,15 +36,17 @@ public:
 
 private:
   void initStructures();
-  void insertToPriorityQueue(Entry *leftEntry, Entry *rightEntry);
-  Entry *getLeft(Entry *entry);
-  Entry *getRight(Entry *entry);
-  int getPosition(Entry *entry);
+  void insertToPriorityQueue(const ValuePair &valuePair);
+  int getLeft(int entryPosition);
+  int getRight(int entryPosition);
   void decreaseFrequency(EntryPair entryPair);
   void replacePair(EntryPair replacingEntryPair, int newSymbol);
   void increaseFrequency(EntryPair entryPair);
   void debugPrintCurrentSequence();
-  bool matchingPair(EntryPair left, EntryPair right);
+  bool matchingPair(const EntryPair &targetEntryPair,
+                    const ValuePair &replacingPair);
+  int getValue(int position);
+  void setValue(int position, int value);
 };
 } // namespace RePairCompression
 

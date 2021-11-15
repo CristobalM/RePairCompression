@@ -5,24 +5,24 @@
 #include <gtest/gtest.h>
 
 using namespace RePairCompression;
-
-TEST(LPRecordHTableTestSuite, CanInsertAndFailOnReachingMaximumSize) {
-  LPRecordHTable hTable(5, 0.75);
-  for (int i = 0; i < 3; i++) {
-    hTable.addRecord(ValuePair(i, i), 0, 1);
-  }
-
-  EXPECT_THROW(
-      {
-        try {
-          hTable.addRecord(ValuePair(3, 3), 0, 1);
-        } catch (const ReachedMaximumSizeError &e) {
-          EXPECT_STREQ(e.what(), e.msgError());
-          throw;
-        }
-      },
-      ReachedMaximumSizeError);
-}
+//
+// TEST(LPRecordHTableTestSuite, CanInsertAndFailOnReachingMaximumSize) {
+//  LPRecordHTable hTable(5, 0.75);
+//  for (int i = 0; i < 3; i++) {
+//    hTable.addRecord(ValuePair(i, i), 0, 1);
+//  }
+//
+//  EXPECT_THROW(
+//      {
+//        try {
+//          hTable.addRecord(ValuePair(3, 3), 0, 1);
+//        } catch (const ReachedMaximumSizeError &e) {
+//          EXPECT_STREQ(e.what(), e.msgError());
+//          throw;
+//        }
+//      },
+//      ReachedMaximumSizeError);
+//}
 
 TEST(LPRecordHTableTestSuite, CanInsertAndFindRecord1) {
   LPRecordHTable hTable;
@@ -68,4 +68,25 @@ TEST(LPRecordHTableTestSuite, CanInsertAndFindRecordWithSameKeySeveralTimes) {
     auto *recordFound = hTable.findRecord(ValuePair(1, 1));
     ASSERT_EQ(recordInserted, recordFound);
   }
+}
+
+TEST(LPRecordHTableTestSuite, CanIterate) {
+  LPRecordHTable hTable;
+  std::set<ValuePair> expected;
+  size_t sz = 100;
+  for (size_t i = 0; i < sz; i++) {
+    hTable.addRecord(ValuePair(i, i), 0, 1);
+    expected.insert(ValuePair(i, i));
+  }
+  std::set<ValuePair> result;
+  auto iterator = hTable.startIteration();
+  int count = 0;
+  while (iterator.hasNext()) {
+    auto kv = iterator.next();
+    result.insert(kv.record->valuePair);
+    count++;
+  }
+
+  ASSERT_EQ(result, expected);
+  ASSERT_EQ(count, sz);
 }

@@ -8,7 +8,7 @@ namespace RePairCompression {
 
 PriorityQueue::PriorityQueue(EntriesList &entriesList, HashTable &hashTable)
     : hashTable(hashTable),
-      sqrtSize((int)std::ceil(std::sqrt(entriesList.size()))),
+      sqrtSize((int)std::ceil(std::sqrt(entriesList.values.size()))),
       recordLinkedLists(sqrtSize, nullptr), activePosition(-1) {}
 void PriorityQueue::insertRecord(Record *record) {
   if (record->frequency - 1 < sqrtSize - 1) {
@@ -80,8 +80,7 @@ Record *PriorityQueue::pop() {
   }
   return record;
 }
-void PriorityQueue::decreaseFrequency(const ValuePair &valuePair) {
-  auto *record = hashTable.getRecord(valuePair);
+void PriorityQueue::decreaseFrequency(Record *record) {
   if (!record)
     return;
 
@@ -96,6 +95,8 @@ void PriorityQueue::decreaseFrequency(const ValuePair &valuePair) {
   }
 }
 void PriorityQueue::decreaseSmallerFrequency(Record *record) {
+  if (record->frequency <= 0)
+    return;
   int position = record->frequency - 1;
   disconnectFromList(position, record);
   record->prev = nullptr;
@@ -157,13 +158,12 @@ void PriorityQueue::disconnectFromList(int position, Record *record) {
   }
 }
 
-void PriorityQueue::increaseFrequency(const ValuePair &valuePair) {
-  auto *record = hashTable.getRecord(valuePair);
+void PriorityQueue::increaseFrequency(Record *record) {
   auto currentFrequency = record->frequency;
   auto nextFrequency = currentFrequency + 1;
   record->frequency = nextFrequency;
-  if (currentFrequency - 1 < sqrtSize - 1) {
-    int position = currentFrequency - 1;
+  int position = currentFrequency - 1;
+  if (position < sqrtSize - 1) {
     disconnectFromList(position, record);
     if (nextFrequency - 1 < sqrtSize - 1) {
       insertInSmallerFrequencies(record);
@@ -183,7 +183,7 @@ void PriorityQueue::increaseFrequency(const ValuePair &valuePair) {
     return;
   }
 
-  int position = sqrtSize - 1;
+  position = sqrtSize - 1;
   auto *currentRecord = record->prev;
   auto *lastRecord = record->prev;
   disconnectFromList(position, record);

@@ -14,6 +14,7 @@ struct ValuePair {
   ValuePair(int leftValue, int rightValue);
   ValuePair() = default;
   bool operator==(const ValuePair &other) const;
+  bool operator<(const ValuePair &other) const;
   bool operator!=(const ValuePair &other) const;
 
   struct HashFunction {

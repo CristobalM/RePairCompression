@@ -26,25 +26,25 @@ using namespace RePairCompression;
 
 TEST(LPRecordHTableTestSuite, CanInsertAndFindRecord1) {
   LPRecordHTable hTable;
-  auto *recordInserted = hTable.addRecord(ValuePair(1, 1), 0, 1);
-  auto *recordFound = hTable.findRecord(ValuePair(1, 1));
+  auto *recordInserted = hTable.addRecord(1, 1, 0, 1);
+  auto *recordFound = hTable.findRecord(1, 1);
   ASSERT_EQ(recordInserted, recordFound);
 }
 TEST(LPRecordHTableTestSuite, CanInsertAndFindRecord2) {
   LPRecordHTable hTable;
   for (int i = 0; i < 100; i++) {
-    auto *recordInserted = hTable.addRecord(ValuePair(i, i), 0, 1);
-    auto *recordFound = hTable.findRecord(ValuePair(i, i));
+    auto *recordInserted = hTable.addRecord(i, i, 0, 1);
+    auto *recordFound = hTable.findRecord(i, i);
     ASSERT_EQ(recordInserted, recordFound);
     ASSERT_EQ(hTable.getSize(), i + 1);
   }
 }
 TEST(LPRecordHTableTestSuite, CanInsertAndDeleteRecord1) {
   LPRecordHTable hTable;
-  hTable.addRecord(ValuePair(1, 1), 0, 1);
+  hTable.addRecord(1, 1, 0, 1);
   ASSERT_EQ(hTable.getSize(), 1);
-  hTable.deleteRecord(ValuePair(1, 1));
-  auto *recordFound = hTable.findRecord(ValuePair(1, 1));
+  hTable.deleteRecord(1, 1);
+  auto *recordFound = hTable.findRecord(1, 1);
   ASSERT_EQ(recordFound, nullptr);
   ASSERT_EQ(hTable.getSize(), 0);
 }
@@ -52,10 +52,10 @@ TEST(LPRecordHTableTestSuite, CanInsertAndDeleteRecord1) {
 TEST(LPRecordHTableTestSuite, CanInsertAndDeleteRecord2) {
   LPRecordHTable hTable(5, 0.75);
   for (int i = 0; i < 1'000'000; i++) {
-    hTable.addRecord(ValuePair(i, i), 0, 1);
+    hTable.addRecord(i, i, 0, 1);
     ASSERT_EQ(hTable.getSize(), 1);
-    hTable.deleteRecord(ValuePair(i, i));
-    auto *recordFound = hTable.findRecord(ValuePair(i, i));
+    hTable.deleteRecord(i, i);
+    auto *recordFound = hTable.findRecord(i, i);
     ASSERT_EQ(recordFound, nullptr);
     ASSERT_EQ(hTable.getSize(), 0);
   }
@@ -64,8 +64,8 @@ TEST(LPRecordHTableTestSuite, CanInsertAndDeleteRecord2) {
 TEST(LPRecordHTableTestSuite, CanInsertAndFindRecordWithSameKeySeveralTimes) {
   LPRecordHTable hTable;
   for (int i = 0; i < 100; i++) {
-    auto *recordInserted = hTable.addRecord(ValuePair(1, 1), 0, 1);
-    auto *recordFound = hTable.findRecord(ValuePair(1, 1));
+    auto *recordInserted = hTable.addRecord(1, 1, 0, 1);
+    auto *recordFound = hTable.findRecord(1, 1);
     ASSERT_EQ(recordInserted, recordFound);
   }
 }
@@ -75,7 +75,7 @@ TEST(LPRecordHTableTestSuite, CanIterate) {
   std::set<ValuePair> expected;
   size_t sz = 100;
   for (size_t i = 0; i < sz; i++) {
-    hTable.addRecord(ValuePair(i, i), 0, 1);
+    hTable.addRecord(i, i, 0, 1);
     expected.insert(ValuePair(i, i));
   }
   std::set<ValuePair> result;
@@ -83,7 +83,7 @@ TEST(LPRecordHTableTestSuite, CanIterate) {
   int count = 0;
   while (iterator.hasNext()) {
     auto kv = iterator.next();
-    result.insert(kv.record->valuePair);
+    result.insert({kv.record->leftValue, kv.record->rightValue});
     count++;
   }
 

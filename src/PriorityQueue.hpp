@@ -22,14 +22,13 @@ public:
   void insertInSmallerFrequencies(Record *record);
   void insertInBiggerFrequencies(Record *record);
 
-  bool empty() const;
   Record *pop();
   void decreaseFrequency(Record *record);
   void decreaseSmallerFrequency(Record *record);
   void decreaseBiggerFrequency(Record *record);
   void disconnectFromList(int position, Record *record);
   void increaseFrequency(Record *record);
-  int getActivePosition();
+  int getActivePosition() const;
 };
 
 } // namespace RePairCompression

@@ -64,7 +64,6 @@ void PriorityQueue::insertInBiggerFrequencies(Record *record) {
   lastRecord->next = record;
   record->prev = lastRecord;
 }
-bool PriorityQueue::empty() const { return activePosition <= -1; }
 Record *PriorityQueue::pop() {
   auto *record = recordLinkedLists[activePosition];
   auto *nextRecord = record->next;
@@ -105,7 +104,7 @@ void PriorityQueue::decreaseSmallerFrequency(Record *record) {
   if (record->frequency >= 1) {
     insertInSmallerFrequencies(record);
   } else {
-    hashTable.deleteRecord(record->valuePair);
+    hashTable.deleteRecord(record->leftValue, record->rightValue);
   }
 }
 
@@ -173,7 +172,7 @@ void PriorityQueue::increaseFrequency(Record *record) {
     return;
   }
 
-  // then it exists on bigger frequencies and must adapted there
+  // then it exists on bigger frequencies and must be adapted there
 
   // should move?
 
@@ -205,6 +204,6 @@ void PriorityQueue::increaseFrequency(Record *record) {
   lastRecord->prev = record;
   record->next = lastRecord;
 }
-int PriorityQueue::getActivePosition() { return activePosition; }
+int PriorityQueue::getActivePosition() const { return activePosition; }
 
 } // namespace RePairCompression

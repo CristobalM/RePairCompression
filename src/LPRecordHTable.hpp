@@ -66,28 +66,28 @@ public:
   LPRecordHTable();
   LPRecordHTable(int capacity, double maxFilledRatio);
 
-  Record *addRecord(const ValuePair &valuePair, int firstEntryPosition,
+  Record *addRecord(int leftValue, int rightValue, int firstEntryPosition,
                     int frequency);
-  Record *findRecord(const ValuePair &valuePair);
-  void deleteRecord(const ValuePair &valuePair);
+  Record *findRecord(int leftValue, int rightValue);
+  void deleteRecord(int leftValue, int rightValue);
 
   int getSize() const;
 
   KVIterator startIteration();
 
 private:
-  inline int hashFun(const ValuePair &valuePair) const;
-  static inline int hashFunSize(const ValuePair &valuePair, int tableSize);
+  inline int hashFun(int leftValue, int rightValue) const;
+  static inline int hashFunSize(int leftValue, int rightValue, int tableSize);
 
-  int findRecordPosition(const ValuePair &valuePair);
+  int findRecordPosition(int leftValue, int rightValue);
   void growIfNeeded() const;
 
   Record *arbitraryInsert(std::vector<int> &targetKeys,
                           std::vector<int> &targetLeft,
                           std::vector<int> &targetRight,
-                          std::vector<Record> &targetRecords,
-                          const ValuePair &valuePair, int firstEntryPosition,
-                          int frequency, int tableSize);
+                          std::vector<Record> &targetRecords, int leftValue,
+                          int rightValue, int firstEntryPosition, int frequency,
+                          int tableSize);
   static int calcCapacity(int capacity);
 };
 } // namespace RePairCompression

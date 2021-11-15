@@ -16,11 +16,8 @@ class RepairCoder {
   TranslateTable translateTable;
 
   int nextSymbol;
-  int debugCurrentStep;
-  int debugTotalSteps;
 
 public:
-  int totalIncFreq;
   RepairCoder(const RepairCoder &other) = delete;
   RepairCoder &operator=(const RepairCoder &other) = delete;
 
@@ -32,21 +29,21 @@ public:
 
   std::vector<int> getFlattenedCompressed();
 
-  int getDebugTotalSteps();
+  //  int getDebugTotalSteps();
 
 private:
   void initStructures();
-  void insertToPriorityQueue(const ValuePair &valuePair);
+  void insertToPriorityQueue(int leftValue, int rightValue);
   int getLeft(int entryPosition);
   int getRight(int entryPosition);
-  void decreaseFrequency(EntryPair entryPair);
-  void replacePair(EntryPair replacingEntryPair, int newSymbol);
-  void increaseFrequency(EntryPair entryPair);
-  void debugPrintCurrentSequence();
-  bool matchingPair(const EntryPair &targetEntryPair,
-                    const ValuePair &replacingPair);
-  int getValue(int position);
-  void setValue(int position, int value);
+  void decreaseFrequency(int leftEntryPosition, int rightEntryPosition);
+  void replacePair(int leftEntryPosition, int rightEntryPosition,
+                   int newSymbol);
+  void increaseFrequency(int leftEntryPosition, int rightEntryPosition);
+  bool matchingPair(int leftFirstPos, int leftSecondPos, int replacingLeft,
+                    int replacingRight);
+  inline int getValue(int position);
+  inline void setValue(int position, int value);
 };
 } // namespace RePairCompression
 

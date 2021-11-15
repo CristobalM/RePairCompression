@@ -10,7 +10,8 @@
 
 namespace RePairCompression {
 struct Record {
-  ValuePair valuePair;
+  int leftValue;
+  int rightValue;
 
   int firstEntryPosition;
   int frequency;
@@ -19,9 +20,10 @@ struct Record {
 
   Record() = default;
 
-  Record(const ValuePair &valuePair, int firstEntryPosition, int frequency)
-      : valuePair(valuePair), firstEntryPosition(firstEntryPosition),
-        frequency(frequency), prev(nullptr), next(nullptr) {}
+  Record(int leftValue, int rightValue, int firstEntryPosition, int frequency)
+      : leftValue(leftValue), rightValue(rightValue),
+        firstEntryPosition(firstEntryPosition), frequency(frequency),
+        prev(nullptr), next(nullptr) {}
 };
 } // namespace RePairCompression
 #endif // REPAIRCOMPRESSION_RECORD_HPP

@@ -5,6 +5,7 @@
 #ifndef REPAIRCOMPRESSION_COMMONDEFINITIONS_HPP
 #define REPAIRCOMPRESSION_COMMONDEFINITIONS_HPP
 #include "Entry.hpp"
+#include <string>
 #include <vector>
 namespace RePairCompression {
 // using EntriesList = std::vector<Entry>;
@@ -24,6 +25,14 @@ struct EntriesList {
   explicit EntriesList(std::vector<int> &&integerSequence)
       : values(std::move(integerSequence)),
         connectors(this->values.size(), {-1, -1}) {}
+
+  explicit EntriesList(std::string &&stringSequence)
+      : connectors(stringSequence.size(), {-1, -1}) {
+    values.reserve(stringSequence.size());
+    for (char c : stringSequence) {
+      values.push_back((int)(unsigned char)c);
+    }
+  }
 
   explicit EntriesList(const std::vector<int> &integerSequence)
       : values(integerSequence.begin(), integerSequence.end()),

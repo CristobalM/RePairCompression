@@ -3,10 +3,7 @@
 //
 
 #include "RepairCoder.hpp"
-#include "EntryPair.hpp"
 #include "TranslateTable.hpp"
-#include "ValuePair.hpp"
-#include <cstddef>
 #include <iostream>
 #include <unordered_set>
 
@@ -15,21 +12,21 @@ bool RepairCoder::done() { return priorityQueue.getActivePosition() <= 0; }
 void RepairCoder::step() {
   auto *record = priorityQueue.pop();
   Record recordTmp = *record;
-  hashTable.deleteRecord(record->valuePair);
+  hashTable.deleteRecord(record->leftValue, record->rightValue);
   record = &recordTmp;
 
-  auto recordVP = record->valuePair;
-
-  auto replacingPair = record->valuePair;
+  int recordLeftValue = record->leftValue;
+  int recordRightValue = record->rightValue;
 
   int entryPosition = record->firstEntryPosition;
 
   int firstPosition = record->firstEntryPosition;
   int prevPosition = firstPosition;
   int replacingSymbol = nextSymbol++;
-  translateTable.addTranslation(replacingPair, replacingSymbol);
+  translateTable.addTranslation(recordLeftValue, recordRightValue,
+                                replacingSymbol);
   while (entryPosition >= 0) {
-    debugTotalSteps++;
+    //    debugTotalSteps++;
     auto &entryConnectorPair = entriesList.connectors[entryPosition];
     auto nextPosition = entryConnectorPair.right;
 
@@ -42,28 +39,30 @@ void RepairCoder::step() {
 
     auto leftPosition = getLeft(entryPosition);
     auto rightPosition = getRight(otherEntryPosition);
+    //
+    //    EntryPair leftEntryPair(leftPosition, entryPosition);
+    //    EntryPair rightEntryPair(otherEntryPosition, rightPosition);
+    //    EntryPair replacingEntryPair(entryPosition, otherEntryPosition);
 
-    EntryPair leftEntryPair(leftPosition, entryPosition);
-    EntryPair rightEntryPair(otherEntryPosition, rightPosition);
-    EntryPair replacingEntryPair(entryPosition, otherEntryPosition);
+    if (!matchingPair(leftPosition, entryPosition, recordLeftValue,
+                      recordRightValue))
+      decreaseFrequency(leftPosition, entryPosition);
+    if (!matchingPair(otherEntryPosition, rightPosition, recordLeftValue,
+                      recordRightValue))
+      decreaseFrequency(otherEntryPosition, rightPosition);
 
-    if (!matchingPair(leftEntryPair, recordVP))
-      decreaseFrequency(leftEntryPair);
-    if (!matchingPair(rightEntryPair, recordVP))
-      decreaseFrequency(rightEntryPair);
-
-    replacePair(replacingEntryPair, replacingSymbol);
+    replacePair(entryPosition, otherEntryPosition, replacingSymbol);
 
     leftPosition = getLeft(entryPosition);
     otherEntryPosition = getRight(entryPosition);
+    //
+    //    EntryPair newLeftEntryPair(leftPosition, entryPosition);
+    //    EntryPair newRightEntryPair(entryPosition, otherEntryPosition);
 
-    EntryPair newLeftEntryPair(leftPosition, entryPosition);
-    EntryPair newRightEntryPair(entryPosition, otherEntryPosition);
+    increaseFrequency(leftPosition, entryPosition);
+    increaseFrequency(entryPosition, otherEntryPosition);
 
-    increaseFrequency(newLeftEntryPair);
-    increaseFrequency(newRightEntryPair);
-
-    debugPrintCurrentSequence();
+    //    debugPrintCurrentSequence();
 
     if (nextPosition <= prevPosition || nextPosition < 0)
       break;
@@ -71,31 +70,14 @@ void RepairCoder::step() {
     prevPosition = nextPosition;
   }
 
-  debugCurrentStep++;
+  //  debugCurrentStep++;
 }
 
-void RepairCoder::replacePair(EntryPair replacingEntryPair, int newSymbol) {
-  int leftEntryPosition = replacingEntryPair.firstPosition;
-  int rightEntryPosition = replacingEntryPair.secondPosition;
-  //  Entry *leftEntry = replacingEntryPair.first;
-  //  Entry *rightEntry = replacingEntryPair.second;
-  if (false) {
-    std::cout << "Replacing pair ("
-              << (leftEntryPosition >= 0
-                      ? std::to_string(getValue(leftEntryPosition))
-                      : "NULL")
-              << ", "
-              << (rightEntryPosition >= 0
-                      ? std::to_string(getValue(rightEntryPosition))
-                      : "NULL")
-              << ") for " << newSymbol << " at position " << leftEntryPosition
-              << std::endl;
-  }
-
+void RepairCoder::replacePair(int leftEntryPosition, int rightEntryPosition,
+                              int newSymbol) {
   auto &leftEntryConnectorPair = entriesList.connectors[leftEntryPosition];
   auto &rightEntryConnectorPair = entriesList.connectors[rightEntryPosition];
 
-  //  int currentPos = getPosition(leftEntry);
   setValue(leftEntryPosition, newSymbol);
   // thread right entry
   {
@@ -104,15 +86,10 @@ void RepairCoder::replacePair(EntryPair replacingEntryPair, int newSymbol) {
       rightPos = rightEntryConnectorPair.right;
     }
 
-    //    auto leftPos = leftEntry->left;
     auto leftPos = leftEntryConnectorPair.left;
     if (leftPos == rightEntryPosition) {
       leftPos = leftEntryPosition;
     }
-    //
-    //    auto *toRightEntry = rightPos != -1 ? &entriesList[rightPos] :
-    //    nullptr; auto *toLeftEntry = leftPos != -1 ? &entriesList[leftPos] :
-    //    nullptr;
 
     if (rightPos >= 0) {
       auto &toRightEntryConnectorPair = entriesList.connectors[rightPos];
@@ -127,7 +104,6 @@ void RepairCoder::replacePair(EntryPair replacingEntryPair, int newSymbol) {
 
   // thread nulls
   {
-    //    auto *rightAdjacentEntry = getRight(rightEntry);
     auto rightAdjacentEntryPosition = getRight(rightEntryPosition);
     setValue(rightEntryPosition, -1);
     rightEntryConnectorPair.left = rightAdjacentEntryPosition;
@@ -145,7 +121,6 @@ void RepairCoder::replacePair(EntryPair replacingEntryPair, int newSymbol) {
     }
 
     auto leftAdjacentEntryPosition = getLeft(rightEntryPosition);
-    //    auto *leftAdjacentEntry = getLeft(rightEntry);
     if (leftAdjacentEntryPosition >= 0) {
       auto adjacentRightTLPos = leftAdjacentEntryPosition + 1;
       auto adjacentRightTLEntryValue =
@@ -162,24 +137,19 @@ void RepairCoder::replacePair(EntryPair replacingEntryPair, int newSymbol) {
   // end thread nulls
 }
 
-void RepairCoder::decreaseFrequency(EntryPair entryPair) {
-  auto leftEntryPosition = entryPair.firstPosition;
-  auto secondEntryPosition = entryPair.secondPosition;
-  //  Entry *leftEntry = entryPair.first;
-  //  Entry *rightEntry = entryPair.second;
-  if (leftEntryPosition < 0 || secondEntryPosition < 0 ||
-      getValue(leftEntryPosition) == -1 ||
-      getValue(secondEntryPosition) == -1 ||
-      leftEntryPosition >= secondEntryPosition)
+void RepairCoder::decreaseFrequency(int leftEntryPosition,
+                                    int rightEntryPosition) {
+  if (leftEntryPosition < 0 || rightEntryPosition < 0)
+    return;
+  auto leftValue = getValue(leftEntryPosition);
+  auto rightValue = getValue(rightEntryPosition);
+  if (leftValue == -1 || rightValue == -1 ||
+      leftEntryPosition >= rightEntryPosition)
     return;
 
-  auto valuePair =
-      ValuePair(getValue(leftEntryPosition), getValue(secondEntryPosition));
-
-  auto *record = hashTable.getRecord(valuePair);
+  auto *record = hashTable.getRecord(leftValue, rightValue);
 
   auto &leftEntryConnectorPair = entriesList.connectors[leftEntryPosition];
-
   if (leftEntryPosition == record->firstEntryPosition) {
     auto nextEntryPosition = leftEntryConnectorPair.right;
     if (nextEntryPosition != -1 && nextEntryPosition != leftEntryPosition) {
@@ -209,7 +179,6 @@ void RepairCoder::decreaseFrequency(EntryPair entryPair) {
 int RepairCoder::getLeft(int entryPosition) {
   if (entryPosition == 0)
     return -1;
-  // auto *leftEntry = &entriesList[currentPosition - 1];
   auto leftPosition = entryPosition - 1;
   auto leftEntryValue = getValue(leftPosition);
   auto &leftEntryConnectorPair = entriesList.connectors[leftPosition];
@@ -227,7 +196,6 @@ int RepairCoder::getRight(int entryPosition) {
     return -1;
   if (entryPosition == (int)entriesList.values.size() - 1)
     return -1;
-  // auto *rightEntry = &entriesList[currentPosition + 1];
   int rightEntryPosition = entryPosition + 1;
   int rightEntryValue = getValue(rightEntryPosition);
   auto &rightEntryConnectorPair = entriesList.connectors[rightEntryPosition];
@@ -245,11 +213,8 @@ TranslateTable RepairCoder::getTranslateTable() { return translateTable; }
 RepairCoder::RepairCoder(EntriesList &entriesList, HashTable &hashTable,
                          PriorityQueue &priorityQueue)
     : entriesList(entriesList), hashTable(hashTable),
-      priorityQueue(priorityQueue), debugCurrentStep(0), debugTotalSteps(0),
-      totalIncFreq(0) {
-  debugPrintCurrentSequence();
+      priorityQueue(priorityQueue), nextSymbol(256) {
   initStructures();
-  debugPrintCurrentSequence();
 }
 void RepairCoder::initStructures() {
   int maxSymbol = 0;
@@ -261,8 +226,8 @@ void RepairCoder::initStructures() {
     auto &currentEntryPairConnector =
         entriesList.connectors[currentEntryPosition];
 
-    ValuePair valuePair(currentEntryValue, nextEntryValue);
-    auto *record = hashTable.increaseFrequency(currentEntryPosition, valuePair);
+    auto *record = hashTable.increaseFrequency(
+        currentEntryPosition, currentEntryValue, nextEntryValue);
     maxSymbol = std::max(maxSymbol, currentEntryValue);
     int firstEntryPosition = record->firstEntryPosition;
 
@@ -273,9 +238,6 @@ void RepairCoder::initStructures() {
     } else {
       lastEntryPosition = currentEntryPosition;
     }
-    // auto *lastEntry = &entriesList[lastEntryPosition];
-    // std::cout << "last entry position: " << lastEntryPosition << " / " <<
-    // entriesList.connectors.size() << std::endl;
     auto &lastEntryPairConnector = entriesList.connectors[lastEntryPosition];
     lastEntryPairConnector.right = currentEntryPosition;
     firstEntryPairConnector.left = currentEntryPosition;
@@ -289,40 +251,35 @@ void RepairCoder::initStructures() {
   auto kvIterator = hashTable.getHTable().startIteration();
   while (kvIterator.hasNext()) {
     auto kv = kvIterator.next();
-    insertToPriorityQueue(kv.record->valuePair);
+
+    insertToPriorityQueue(kv.record->leftValue, kv.record->rightValue);
   }
 }
 
-void RepairCoder::insertToPriorityQueue(const ValuePair &valuePair) {
-  auto *record = hashTable.getRecord(valuePair);
+void RepairCoder::insertToPriorityQueue(int leftValue, int rightValue) {
+  auto *record = hashTable.getRecord(leftValue, rightValue);
   priorityQueue.insertRecord(record);
 }
-void RepairCoder::increaseFrequency(EntryPair entryPair) {
-  totalIncFreq++;
-  //  Entry *leftEntry = entryPair.first;
-  //  Entry *rightEntry = entryPair.second;
+void RepairCoder::increaseFrequency(int leftEntryPosition,
+                                    int rightEntryPosition) {
+  // totalIncFreq++;
 
-  int leftEntryPosition = entryPair.firstPosition;
-  int rightEntryPosition = entryPair.secondPosition;
-
-  if (leftEntryPosition < 0 || rightEntryPosition < 0 ||
-      getValue(leftEntryPosition) == -1 || getValue(rightEntryPosition) == -1 ||
-      leftEntryPosition >= rightEntryPosition)
+  if (leftEntryPosition < 0 || rightEntryPosition < 0)
     return;
 
   int leftEntryValue = getValue(leftEntryPosition);
   int rightEntryValue = getValue(rightEntryPosition);
 
-  auto &leftEntryConnectorPair = entriesList.connectors[leftEntryPosition];
-  //  auto &rightEntryConnectorPair =
-  //  entriesList.connectors[rightEntryPosition];
+  if (leftEntryValue == -1 || rightEntryValue == -1 ||
+      leftEntryPosition >= rightEntryPosition)
+    return;
 
-  ValuePair valuePair(leftEntryValue, rightEntryValue);
+  auto &leftEntryConnectorPair = entriesList.connectors[leftEntryPosition];
 
   // does not increase frequency
   bool created = false;
-  auto *record =
-      hashTable.createRecordIfNotExists(leftEntryPosition, valuePair, created);
+  auto *record = hashTable.createRecordIfNotExists(
+      leftEntryPosition, leftEntryValue, rightEntryValue, created);
 
   if (!created) {
     // record existed before
@@ -333,7 +290,6 @@ void RepairCoder::increaseFrequency(EntryPair entryPair) {
   }
 
   int firstEntryPosition = record->firstEntryPosition;
-  // auto *firstEntry = &entriesList[firstEntryPosition];
   auto &firstEntryConnectorPair = entriesList.connectors[firstEntryPosition];
   // we just created it
   if (created) {
@@ -345,39 +301,29 @@ void RepairCoder::increaseFrequency(EntryPair entryPair) {
 
   int lastEntryPosition = firstEntryConnectorPair.left;
   auto &lastEntryConnectorPair = entriesList.connectors[lastEntryPosition];
-  // auto *lastEntry = &entriesList[lastEntryPosition];
 
   lastEntryConnectorPair.right = leftEntryPosition;
   leftEntryConnectorPair.left = lastEntryPosition;
   leftEntryConnectorPair.right = firstEntryPosition;
   firstEntryConnectorPair.left = leftEntryPosition;
 }
-void RepairCoder::debugPrintCurrentSequence() {
-  return;
-  for (size_t i = 0; i < entriesList.values.size(); i++) {
-    auto value = entriesList.values[i];
-    std::cout << "(" << value << ", " << entriesList.connectors[i].left << ", "
-              << entriesList.connectors[i].right << "); ";
-  }
-  std::cout << std::endl;
-}
-bool RepairCoder::matchingPair(const EntryPair &targetEntryPair,
-                               const ValuePair &replacingPair) {
-  if (targetEntryPair.firstPosition < 0 || targetEntryPair.secondPosition < 0)
+
+bool RepairCoder::matchingPair(int leftFirstPos, int leftSecondPos,
+                               int replacingLeft, int replacingRight) {
+  if (leftFirstPos < 0 || leftSecondPos < 0)
     return true;
-  auto leftF = getValue(targetEntryPair.firstPosition);
+  auto leftF = getValue(leftFirstPos);
   if (leftF == -1)
     return true;
-  auto leftS = getValue(targetEntryPair.secondPosition);
+  auto leftS = getValue(leftSecondPos);
   if (leftS == -1)
     return true;
-  return leftF == replacingPair.leftValue && leftS == replacingPair.rightValue;
+  return leftF == replacingLeft && leftS == replacingRight;
 }
 
 std::vector<int> RepairCoder::getFlattenedCompressed() {
   int entryPosition = 0;
   auto entryValue = getValue(entryPosition);
-  //  auto *entry = &entriesList[0];
   if (entryValue == -1)
     throw std::runtime_error("Badly compressed entries array");
   std::vector<int> result;
@@ -393,17 +339,17 @@ std::vector<int> RepairCoder::getFlattenedCompressed() {
   }
   return result;
 }
-int RepairCoder::getDebugTotalSteps() { return debugTotalSteps; }
+// int RepairCoder::getDebugTotalSteps() { return debugTotalSteps; }
 int RepairCoder::getValue(int position) {
-  if (position < 0 || position >= (int)entriesList.values.size()) {
-    throw std::runtime_error("out of range access");
-  }
+  //  if (position < 0 || position >= (int)entriesList.values.size()) {
+  //    throw std::runtime_error("out of range access");
+  //  }
   return entriesList.values[position];
 }
 void RepairCoder::setValue(int position, int value) {
-  if (position < 0 || position >= (int)entriesList.values.size()) {
-    throw std::runtime_error("out of range access");
-  }
+  //  if (position < 0 || position >= (int)entriesList.values.size()) {
+  //    throw std::runtime_error("out of range access");
+  //  }
   entriesList.values[position] = value;
 }
 

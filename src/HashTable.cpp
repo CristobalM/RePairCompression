@@ -3,14 +3,13 @@
 //
 #include "HashTable.hpp"
 #include <functional>
-#include <stdexcept>
 namespace RePairCompression {
 
-Record *HashTable::increaseFrequency(int leftEntryPosition,
-                                     const ValuePair &valuePair) {
-  auto *record = hashTable.findRecord(valuePair);
+Record *HashTable::increaseFrequency(int leftEntryPosition, int leftValue,
+                                     int rightValue) {
+  auto *record = hashTable.findRecord(leftValue, rightValue);
   if (!record) {
-    return hashTable.addRecord(valuePair, leftEntryPosition, 1);
+    return hashTable.addRecord(leftValue, rightValue, leftEntryPosition, 1);
   }
   record->frequency++;
   return record;
@@ -18,23 +17,22 @@ Record *HashTable::increaseFrequency(int leftEntryPosition,
 
 HashTable::HashTable() = default;
 
-Record *HashTable::getRecord(const ValuePair &valuePair) {
-  return hashTable.findRecord(valuePair);
+Record *HashTable::getRecord(int leftValue, int rightValue) {
+  return hashTable.findRecord(leftValue, rightValue);
 }
 
-void HashTable::deleteRecord(const ValuePair &valuePair) {
-  hashTable.deleteRecord(valuePair);
+void HashTable::deleteRecord(int leftValue, int rightValue) {
+  hashTable.deleteRecord(leftValue, rightValue);
 }
-Record *HashTable::createRecordIfNotExists(int position,
-                                           const ValuePair &valuePair,
-                                           bool &created) {
-  auto *record = hashTable.findRecord(valuePair);
+Record *HashTable::createRecordIfNotExists(int position, int leftValue,
+                                           int rightValue, bool &created) {
+  auto *record = hashTable.findRecord(leftValue, rightValue);
   if (record) {
     created = false;
     return record;
   }
   created = true;
-  return hashTable.addRecord(valuePair, position, 0);
+  return hashTable.addRecord(leftValue, rightValue, position, 0);
 }
 LPRecordHTable &HashTable::getHTable() { return hashTable; }
 

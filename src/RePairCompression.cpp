@@ -29,14 +29,9 @@ template <typename T> static int castToInt(T value) {
 template <typename TSequence>
 static std::unique_ptr<RePairDataStructure>
 compressSequence(TSequence &&sequence) {
-  std::reverse(sequence.begin(), sequence.end()); // inplace reverse
-  EntriesList entriesList(sequence.size());
-  size_t sequenceSize = sequence.size();
-  for (size_t i = 0; i < sequenceSize; i++) {
-    auto value = castToInt(sequence.back());
-    sequence.pop_back();
-    entriesList.values[i] = value;
-  }
+  //  std::reverse(sequence.begin(), sequence.end()); // inplace reverse
+  EntriesList entriesList(std::forward<TSequence>(sequence));
+
   HashTable hashTable;
   auto priorityQueue = PriorityQueue(entriesList, hashTable);
   auto rePairCoder = RepairCoder(entriesList, hashTable, priorityQueue);

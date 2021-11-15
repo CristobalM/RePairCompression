@@ -6,8 +6,8 @@
 #include "Serialization.hpp"
 namespace RePairCompression {
 
-void TranslateTable::addTranslation(const ValuePair &valuePair, int symbol) {
-  translateMap[symbol] = valuePair;
+void TranslateTable::addTranslation(int leftValue, int rightValue, int symbol) {
+  translateMap[symbol] = ValuePair(leftValue, rightValue);
 }
 ValuePair TranslateTable::getPair(int symbol) { return translateMap[symbol]; }
 void TranslateTable::setFirstSymbol(int symbol) { this->firstSymbol = symbol; }
@@ -15,7 +15,7 @@ int TranslateTable::getFirstSymbol() const { return firstSymbol; }
 void TranslateTable::dump(std::ostream &ostream) {
   write_u32(ostream, firstSymbol);
   write_u32(ostream, (unsigned int)translateMap.size());
-  for (auto p : translateMap) {
+  for (const auto &p : translateMap) {
     write_u32(ostream, p.first);
     write_u32(ostream, p.second.leftValue);
     write_u32(ostream, p.second.rightValue);
@@ -30,7 +30,7 @@ TranslateTable TranslateTable::load(std::istream &istream) {
     auto symbol = (int)read_u32(istream);
     auto leftValue = (int)read_u32(istream);
     auto rightValue = (int)read_u32(istream);
-    translateTable.addTranslation(ValuePair(leftValue, rightValue), symbol);
+    translateTable.addTranslation(leftValue, rightValue, symbol);
   }
 
   return translateTable;

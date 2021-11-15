@@ -16,10 +16,11 @@ class HashTable {
 
 public:
   HashTable();
-  Record *increaseFrequency(int leftEntryPosition, const ValuePair &valuePair);
-  Record *getRecord(const ValuePair &valuePair);
-  void deleteRecord(const ValuePair &valuePair);
-  Record *createRecordIfNotExists(int position, const ValuePair &valuePair,
+  Record *increaseFrequency(int leftEntryPosition, int leftValue,
+                            int rightValue);
+  Record *getRecord(int leftValue, int rightValue);
+  void deleteRecord(int leftValue, int rightValue);
+  Record *createRecordIfNotExists(int position, int leftValue, int rightValue,
                                   bool &created);
   LPRecordHTable &getHTable();
 };

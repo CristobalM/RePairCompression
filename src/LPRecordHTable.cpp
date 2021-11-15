@@ -6,22 +6,22 @@
 #include <stdexcept>
 
 namespace RePairCompression {
-Record *LPRecordHTable::addRecord(const ValuePair &valuePair,
+Record *LPRecordHTable::addRecord(int leftValue, int rightValue,
                                   int firstEntryPosition, int frequency) {
   growIfNeeded();
-  return arbitraryInsert(keys, left, right, data, valuePair, firstEntryPosition,
-                         frequency, currentSize);
+  return arbitraryInsert(keys, left, right, data, leftValue, rightValue,
+                         firstEntryPosition, frequency, currentSize);
 }
 
-Record *LPRecordHTable::findRecord(const ValuePair &valuePair) {
-  auto recordPos = findRecordPosition(valuePair);
+Record *LPRecordHTable::findRecord(int leftValue, int rightValue) {
+  auto recordPos = findRecordPosition(leftValue, rightValue);
   if (recordPos == NOT_FOUND)
     return nullptr;
   return &(data[recordPos]);
 }
 
-void LPRecordHTable::deleteRecord(const ValuePair &valuePair) {
-  int recordPosition = findRecordPosition(valuePair);
+void LPRecordHTable::deleteRecord(int leftValue, int rightValue) {
+  int recordPosition = findRecordPosition(leftValue, rightValue);
   if (recordPosition < 0)
     return;
   keys[recordPosition] = DELETED_KEY;
@@ -30,34 +30,20 @@ void LPRecordHTable::deleteRecord(const ValuePair &valuePair) {
 
 LPRecordHTable::LPRecordHTable() : LPRecordHTable(DEFAULT_CAPACITY, 1) {}
 
-int LPRecordHTable::hashFun(const ValuePair &valuePair) const {
-  return hashFunSize(valuePair, currentSize);
+int LPRecordHTable::hashFun(int leftValue, int rightValue) const {
+  return hashFunSize(leftValue, rightValue, currentSize);
 }
-int LPRecordHTable::findRecordPosition(const ValuePair &valuePair) {
-  int base = hashFun(valuePair);
+int LPRecordHTable::findRecordPosition(int leftValue, int rightValue) {
+  int base = hashFun(leftValue, rightValue);
 
   for (int i = 0; i < currentSize; i++) {
     auto k = (base + i) & currentSize;
     if (keys[k] == EMPTY_KEY)
       break;
-    if (keys[k] >= 0 &&
-        (left[k] == valuePair.leftValue && right[k] == valuePair.rightValue))
+    if (keys[k] >= 0 && (left[k] == leftValue && right[k] == rightValue))
       return k;
   }
   return NOT_FOUND;
-  //  int baseHValue = hashFun(valuePair);
-  //  for (int i = 0; i < currentSize; i++) {
-  //    int j = (baseHValue + i) % currentSize;
-  //    auto key = keys[j];
-  //    if (key == EMPTY_KEY)
-  //      return NOT_FOUND;
-  //    if (key == DELETED_KEY || data[j].valuePair != valuePair) {
-  //      continue;
-  //    }
-  //    // then recordWrapper.record.valuePair == valuePair
-  //    return j;
-  //  }
-  //  return NOT_FOUND;
 }
 LPRecordHTable::LPRecordHTable(int capacity, double maxFilledRatio)
     : currentSize(calcCapacity(capacity)), keys(currentSize, EMPTY_KEY),
@@ -68,32 +54,14 @@ void LPRecordHTable::growIfNeeded() const {
   if (nextFilledRatio < maxFilledRatio)
     return;
   throw ReachedMaximumSizeError();
-  //  double nextSizeDouble = std::ceil(((double)currentSize * (1.0 +
-  //  GROW_RATIO))); int nextSize = (int)nextSizeDouble; if (nextSize <
-  //  currentSize || nextSizeDouble >= (1UL << 31UL)) {
-  //    throw std::runtime_error("Overflowed integer max size 2^31");
-  //  }
-  //  auto newData = std::make_unique<RecordWrapper[]>(nextSize);
-  //  for (int i = 0; i < currentSize; i++) {
-  //    auto &recordWrapper = data[i];
-  //    auto record = recordWrapper.record;
-  //    if (recordWrapper.key >= 0) {
-  //      arbitraryInsert(newData.get(), record.valuePair,
-  //                      record.firstEntryPosition, record.frequency,
-  //                      nextSize);
-  //    }
-  //  }
-  //  data = std::move(newData);
-  //  currentSize = nextSize;
 }
-int LPRecordHTable::hashFunSize(const ValuePair &valuePair, int tableSize) {
+int LPRecordHTable::hashFunSize(int leftValue, int rightValue, int tableSize) {
   //  static constexpr unsigned long primeNumber = 767865341467865341UL;
   //  unsigned long mergedValue = ((unsigned long)valuePair.leftValue << 32UL) |
   //                              (unsigned long)valuePair.rightValue;
   //  return (int)(((mergedValue * primeNumber) >> 32UL) &
   //               (unsigned long)tableSize);
-  return (int)((std::hash<int>()(valuePair.leftValue) ^
-                std::hash<int>()(valuePair.rightValue)) &
+  return (int)((std::hash<int>()(leftValue) ^ std::hash<int>()(rightValue)) &
                (unsigned long)tableSize);
 }
 
@@ -101,25 +69,23 @@ Record *LPRecordHTable::arbitraryInsert(std::vector<int> &targetKeys,
                                         std::vector<int> &targetLeft,
                                         std::vector<int> &targetRight,
                                         std::vector<Record> &targetRecords,
-                                        const ValuePair &valuePair,
+                                        int leftValue, int rightValue,
                                         int firstEntryPosition, int frequency,
                                         int tableSize) {
-  int baseHValue = hashFun(valuePair);
+  int baseHValue = hashFun(leftValue, rightValue);
   for (int i = 0; i < tableSize; i++) {
     int j = (baseHValue + i) & tableSize;
     auto &key = targetKeys[j];
-    auto &leftValue = targetLeft[j];
-    auto &rightValue = targetRight[j];
     auto &record = targetRecords[j];
     if (key < 0) {
-      record = Record(valuePair, firstEntryPosition, frequency);
+      record = Record(leftValue, rightValue, firstEntryPosition, frequency);
       key = j;
-      leftValue = valuePair.leftValue;
-      rightValue = valuePair.rightValue;
+      targetLeft[j] = leftValue;
+      targetRight[j] = rightValue;
       usedSlots++;
       return &record;
     }
-    if (record.valuePair == valuePair) {
+    if (record.leftValue == leftValue && record.rightValue == rightValue) {
       // already inserted
       return &record;
     }

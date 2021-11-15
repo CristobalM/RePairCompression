@@ -15,7 +15,7 @@ class TranslateTable {
 public:
   void setFirstSymbol(int firstSymbol);
   int getFirstSymbol() const;
-  void addTranslation(const ValuePair &valuePair, int symbol);
+  void addTranslation(int leftValue, int rightValue, int symbol);
   ValuePair getPair(int symbol);
   void dump(std::ostream &ostream);
   size_t size() const;
